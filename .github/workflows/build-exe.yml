@@ -1,0 +1,43 @@
+name: Build Spanish Translator App Executable
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    # Step 1: Check out the repository code
+    - name: Checkout Source Code
+      uses: actions/checkout@v4
+
+    # Step 2: Set up Python runtime environment
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    # Step 3: Install compilation tools and all library requirements
+    - name: Install Dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pyinstaller customtkinter deep-translator
+
+    # Step 4: Run PyInstaller to bundle everything into a single EXE
+    - name: Compile Script to Standalone EXE
+      run: |
+        pyinstaller --noconsole --onefile spanish_translator_app.py
+
+    # Step 5: Securely upload the final executable artifact
+    - name: Upload Compiled Executable Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: Spanish-Translator-Windows-Executable
+        path: dist/spanish_translator_app.exe
+        if-no-files-found: error
+        retention-days: 7
+        

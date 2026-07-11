@@ -2,18 +2,21 @@ import re
 import base64
 from deep_translator import GoogleTranslator
 
-# Persistent Translation Instances
-ENGINES = {
-    "spanish": GoogleTranslator(source='en', target='es'),
-    "french": GoogleTranslator(source='en', target='fr'),
-    "german": GoogleTranslator(source='en', target='de'),
-    "english": GoogleTranslator(source='auto', target='en')
-}
-
 def translate_api(target_lang, text):
-    if target_lang in ENGINES:
-        return ENGINES[target_lang].translate(text)
-    raise ValueError(f"Unsupported core language: {target_lang}")
+    """
+    Handles bidirectional natural language translations routing.
+    Uses source='auto' to cleanly accept input in any language and convert it
+    strictly to the language specified by the UI app handler.
+    """
+    if target_lang == "spanish":
+        return GoogleTranslator(source='auto', target='es').translate(text)
+    elif target_lang == "french":
+        return GoogleTranslator(source='auto', target='fr').translate(text)
+    elif target_lang == "german":
+        return GoogleTranslator(source='auto', target='de').translate(text)
+    elif target_lang == "english":
+        return GoogleTranslator(source='auto', target='en').translate(text)
+    raise ValueError(f"Unsupported core language target: {target_lang}")
 
 def process_ascii(payload_phrase):
     if re.match(r'^[0-9\s]+$', payload_phrase):
@@ -61,4 +64,4 @@ def process_base64(payload_phrase, decode_mode=False):
         decoded_bytes = base64.b64decode(payload_phrase.strip())
         return "ENGLISH (BASE64 DECODED)", decoded_bytes.decode('utf-8')
     return "BASE64", base64.b64encode(payload_phrase.encode('utf-8')).decode('utf-8')
-      
+    

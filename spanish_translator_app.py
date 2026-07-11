@@ -15,7 +15,7 @@ class SpanishTerminalTranslator(ctk.CTk):
         self.terminal_display = ctk.CTkTextbox(self, font=ctk.CTkFont(family="Consolas", size=13), fg_color="#000000", text_color="#00FF33", insert_color="#00FF33", border_width=0, corner_radius=0)
         self.terminal_display.pack(fill="both", expand=True, padx=15, pady=(15, 0))
         
-        self.terminal_display.insert("end", "====================================================================\n SPANISH TRANSLATION PARSER HARDWARE LAYER\n====================================================================\n Ready for execution strings.\n Syntax Layout: [string payload] (func translate to spanish)\n\n")
+        self.terminal_display.insert("end", "====================================================================\n SPANISH TRANSLATION PARSER HARDWARE LAYER\n====================================================================\n Ready for execution strings.\n Syntax Layout:\n   - text (func translate to spanish)\n   - text (func translate to english)\n\n")
 
         self.input_frame = ctk.CTkFrame(self, fg_color="#000000", corner_radius=0)
         self.input_frame.pack(fill="x", padx=15, pady=(0, 15))
@@ -37,23 +37,30 @@ class SpanishTerminalTranslator(ctk.CTk):
             self.terminal_display.delete("1.0", "end")
             return
 
-        match = re.search(r'\s+\(func translate to spanish\)\s*$', raw_cmd, re.IGNORECASE)
-        if not match:
-            self.terminal_display.insert("end", " >> SYNTAX ERROR: Expecting structure ending with (func translate to spanish)\n\n")
+        match_to_spanish = re.search(r'\s+\(func translate to spanish\)\s*$', raw_cmd, re.IGNORECASE)
+        match_to_english = re.search(r'\s+\(func translate to english\)\s*$', raw_cmd, re.IGNORECASE)
+
+        if match_to_spanish:
+            payload_phrase = raw_cmd[:match_to_spanish.start()].strip()
+            target = "spanish"
+        elif match_to_english:
+            payload_phrase = raw_cmd[:match_to_english.start()].strip()
+            target = "english"
+        else:
+            self.terminal_display.insert("end", " >> SYNTAX ERROR: Expecting (func translate to spanish) or (func translate to english)\n\n")
             return
 
-        payload_phrase = raw_cmd[:match.start()].strip()
         if not payload_phrase:
             self.terminal_display.insert("end", " >> INPUT ERROR: Context message parameter index null.\n\n")
             return
 
         try:
-            res = encoders.translate_api("spanish", payload_phrase)
-            self.terminal_display.insert("end", f" >> TARGET LANG: SPANISH\n >> TRANSLATION : {res}\n\n")
+            res = encoders.translate_api(target, payload_phrase)
+            self.terminal_display.insert("end", f" >> TARGET LANG: {target.upper()}\n >> TRANSLATION : {res}\n\n")
         except Exception as err:
             self.terminal_display.insert("end", f" >> NETWORK TIMEOUT: Gateway request refused. Info: {err}\n\n")
         self.terminal_display.see("end")
 
 if __name__ == "__main__":
     SpanishTerminalTranslator().mainloop()
-  
+    

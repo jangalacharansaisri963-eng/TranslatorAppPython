@@ -19,6 +19,12 @@ def translate_api(target_lang, text):
     elif target_lang == "hindi":
         # CRITICAL: Routes directly to Devanagari script processing
         return GoogleTranslator(source='auto', target='hi').translate(text)
+    # --- FIXED & EXPANDED FOR INDIA TRAVEL SUITE ---
+    elif target_lang == "telugu":
+        return GoogleTranslator(source='auto', target='te').translate(text)
+    elif target_lang == "tamil":
+        return GoogleTranslator(source='auto', target='ta').translate(text)
+    # -----------------------------------------------
     raise ValueError(f"Unsupported core language target: {target_lang}")
 
 # =====================================================================

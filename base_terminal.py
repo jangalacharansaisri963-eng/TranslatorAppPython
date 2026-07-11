@@ -11,13 +11,12 @@ class BaseTerminalApp(ctk.CTk):
         # Save prompt label internally so history logger can reference it
         self.prompt_text = prompt_label
 
-        # Unified Terminal Display Box (Using Segoe UI for global unicode/Hindi rendering stability)
+        # FIXED: Removed insert_color here to prevent the CustomTkinter crash
         self.terminal_display = ctk.CTkTextbox(
             self, 
             font=ctk.CTkFont(family="Segoe UI", size=13), 
             fg_color="#000000", 
             text_color="#00FF33", 
-            insert_color="#00FF33", 
             border_width=0, 
             corner_radius=0
         )
@@ -45,6 +44,7 @@ class BaseTerminalApp(ctk.CTk):
         )
         self.label_widget.pack(side="left")
 
+        # CTkEntry safely supports insert_color, so this remains untouched
         self.command_entry = ctk.CTkEntry(
             self.input_frame, 
             font=ctk.CTkFont(family="Segoe UI", size=13), 
@@ -67,7 +67,6 @@ class BaseTerminalApp(ctk.CTk):
         if not raw_cmd: 
             return
         
-        # FIXED: Prints the authentic prompt prefix into the log along with what you typed
         self.terminal_display.insert("end", f"{self.prompt_text}{raw_cmd}\n")
 
         # Global System Command: Clear

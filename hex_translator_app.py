@@ -1,58 +1,33 @@
 import re
-import customtkinter as ctk
 import encoders
+from base_terminal import BaseTerminalApp
 
-ctk.set_appearance_mode("dark")
-
-class HexTerminalTranslator(ctk.CTk):
+class HexTerminalTranslator(BaseTerminalApp):
     def __init__(self):
-        super().__init__()
-        self.title("Terminal Console - Hex Core")
-        self.geometry("680x450")
-        self.resizable(False, False)
-        self.configure(fg_color="#000000")
+        super().__init__(
+            title_name="Terminal Console - Hex Core",
+            syntax_hints="Syntax Layout:\n   - text (func translate to hex)\n   - 414243 (func translate to english)",
+            prompt_label="encoder@hex:~$ "
+        )
 
-        self.terminal_display = ctk.CTkTextbox(self, font=ctk.CTkFont(family="Consolas", size=13), fg_color="#000000", text_color="#00FF33", insert_color="#00FF33", border_width=0, corner_radius=0)
-        self.terminal_display.pack(fill="both", expand=True, padx=15, pady=(15, 0))
-        self.terminal_display.insert("end", "====================================================================\n HEXADECIMAL ENCODING/DECODING PARSER HARDWARE LAYER\n====================================================================\n Ready for execution strings.\n Syntax Layout:\n   - text (func translate to hex)\n   - code (func translate to english)\n\n")
+    def process_command(self, raw_cmd):
+        match_to_hex = re.search(r'\s+\(func translate to hex\)\s*$', raw_cmd, re.IGNORECASE)
+        match_to_english = re.search(r'\s+\(func translate to english\)\s*$', raw_cmd, re.IGNORECASE)
 
-        self.input_frame = ctk.CTkFrame(self, fg_color="#000000", corner_radius=0)
-        self.input_frame.pack(fill="x", padx=15, pady=(0, 15))
-        ctk.CTkLabel(self.input_frame, text="translator@hex:~$ ", font=ctk.CTkFont(family="Consolas", size=13, weight="bold"), text_color="#00FF33").pack(side="left")
-
-        self.command_entry = ctk.CTkEntry(self.input_frame, font=ctk.CTkFont(family="Consolas", size=13), fg_color="#000000", text_color="#ffffff", border_width=0, insert_color="#00FF33", corner_radius=0)
-        self.command_entry.pack(side="left", fill="x", expand=True)
-        self.command_entry.focus_set()
-        self.command_entry.bind("<Return>", self.execute_terminal_line)
-
-    def execute_terminal_line(self, event=None):
-        raw_cmd = self.command_entry.get().strip()
-        self.command_entry.delete(0, "end")
-        if not raw_cmd: return
-        self.terminal_display.insert("end", f"translator@hex:~$ {raw_cmd}\n")
-
-        if raw_cmd.lower() in ["clear", "cls"]:
-            self.terminal_display.delete("1.0", "end")
+        if match_to_hex:
+            payload_phrase = raw_cmd[:match_to_hex.start()].strip()
+            decode_mode = False
+        elif match_to_english:
+            payload_phrase = raw_cmd[:match_to_english.start()].strip()
+            decode_mode = True
+        else:
+            self.terminal_display.insert("end", " >> SYNTAX ERROR: Mismatched hex routing parameters.\n\n")
             return
 
-        match_to_target = re.search(r'\s+\(func translate to hex\)\s*$', raw_cmd, re.IGNORECASE)
-        match_to_eng = re.search(r'\s+\(func translate to english\)\s*$', raw_cmd, re.IGNORECASE)
-
         try:
-            if match_to_target:
-                payload = raw_cmd[:match_to_target.start()].strip()
-                label, res = encoders.process_hex(payload, decode_mode=False)
-                self.terminal_display.insert("end", f" >> TARGET LANG: {label}\n >> TRANSLATION : {res}\n\n")
-            elif match_to_eng:
-                payload = raw_cmd[:match_to_eng.start()].strip()
-                label, res = encoders.process_hex(payload, decode_mode=True)
-                self.terminal_display.insert("end", f" >> TARGET LANG: {label}\n >> TRANSLATION : {res}\n\n")
-            else:
-                self.terminal_display.insert("end", " >> SYNTAX ERROR: Expecting (func translate to hex) or (func translate to english)\n\n")
+            label, res = encoders.process_hex(payload_phrase, decode_mode=decode_mode)
+            self.terminal_display.insert("end", f" >> OPERATION : {label}\n >> RESULT    : {res}\n\n")
+            self.last_result = res
         except Exception as err:
-            self.terminal_display.insert("end", f" >> DECODER ERROR: Data stream recovery failed. Info: {err}\n\n")
-        self.terminal_display.see("end")
-
-if __name__ == "__main__":
-    HexTerminalTranslator().mainloop()
-  
+            self.terminal_display.insert("end", f" >> SYSTEM FAILURE: Data corruption mismatch. Info: {err}\n\n")
+            

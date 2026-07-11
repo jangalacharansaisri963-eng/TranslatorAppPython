@@ -1,4 +1,4 @@
-name: Build All Translator Executables
+name: Build Single Unified Translator Executable
 
 on:
   push:
@@ -24,22 +24,14 @@ jobs:
         python -m pip install --upgrade pip
         pip install pyinstaller customtkinter deep-translator
 
-    - name: Compile All 9 Scripts to Standalone EXEs
+    - name: Compile Unified App to Standalone EXE
       run: |
-        pyinstaller --noconsole --onefile --collect-all deep_translator spanish_translator_app.py
-        pyinstaller --noconsole --onefile --collect-all deep_translator french_translator_app.py
-        pyinstaller --noconsole --onefile --collect-all deep_translator german_translator_app.py
-        pyinstaller --noconsole --onefile --collect-all deep_translator ascii_translator_app.py
-        pyinstaller --noconsole --onefile --collect-all deep_translator binary_translator_app.py
-        pyinstaller --noconsole --onefile --collect-all deep_translator hex_translator_app.py
-        pyinstaller --noconsole --onefile --collect-all deep_translator octal_translator_app.py
-        pyinstaller --noconsole --onefile --collect-all deep_translator base64_translator_app.py
-        pyinstaller --noconsole --onefile --collect-all deep_translator hindi_translator_app.py
+        pyinstaller --noconsole --onefile --collect-all deep_translator main_terminal_app.py
 
-    - name: Upload All Compiled Executable Artifacts
+    - name: Upload Compiled Executable Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: Complete-Translator-Windows-Suite
+        name: Unified-Quantum-Terminal
         path: dist/*.exe
         if-no-files-found: error
         retention-days: 7

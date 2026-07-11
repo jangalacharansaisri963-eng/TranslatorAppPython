@@ -9,7 +9,7 @@ class UnifiedTerminalConsole(BaseTerminalApp):
             syntax_hints=(
                 "Global Syntax Routines:\n"
                 "   - [text] (func translate to binary/hex/octal/ascii/base64)\n"
-                "   - [text] (func translate to hindi/spanish/french/german)\n"
+                "   - [text] (func translate to hindi/spanish/french/german/telugu/tamil)\n"
                 "   - [code] (func translate to english)"
             ),
             prompt_label="core@quantum_matrix:~$ "
@@ -35,6 +35,11 @@ class UnifiedTerminalConsole(BaseTerminalApp):
         match_spanish = re.search(r'\s+\(func translate to spanish\)\s*$', raw_cmd, re.IGNORECASE)
         match_french = re.search(r'\s+\(func translate to french\)\s*$', raw_cmd, re.IGNORECASE)
         match_german = re.search(r'\s+\(func translate to german\)\s*$', raw_cmd, re.IGNORECASE)
+        
+        # --- FIXED FOR INDIA TRAVEL MATRIX ---
+        match_telugu = re.search(r'\s+\(func translate to telugu\)\s*$', raw_cmd, re.IGNORECASE)
+        match_tamil = re.search(r'\s+\(func translate to tamil\)\s*$', raw_cmd, re.IGNORECASE)
+        # -------------------------------------
 
         try:
             # --- Handle Digital Encoders ---
@@ -67,6 +72,15 @@ class UnifiedTerminalConsole(BaseTerminalApp):
             elif match_german:
                 payload = raw_cmd[:match_german.start()].strip()
                 label, res = "GERMAN", encoders.translate_api("german", payload)
+                
+            # --- INDIA TRAVEL SUITE EXECUTION BLOCKS ---
+            elif match_telugu:
+                payload = raw_cmd[:match_telugu.start()].strip()
+                label, res = "TELUGU", encoders.translate_api("telugu", payload)
+            elif match_tamil:
+                payload = raw_cmd[:match_tamil.start()].strip()
+                label, res = "TAMIL", encoders.translate_api("tamil", payload)
+            # -------------------------------------------
             else:
                 self.terminal_display.insert("end", " >> SYNTAX ERROR: Command instruction label unrecognized.\n\n")
                 return
@@ -103,4 +117,4 @@ class UnifiedTerminalConsole(BaseTerminalApp):
 
 if __name__ == "__main__":
     UnifiedTerminalConsole().mainloop()
-              
+    

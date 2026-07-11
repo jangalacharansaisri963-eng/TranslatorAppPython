@@ -34,6 +34,7 @@ jobs:
         pyinstaller --noconsole --onefile hex_translator_app.py
         pyinstaller --noconsole --onefile octal_translator_app.py
         pyinstaller --noconsole --onefile base64_translator_app.py
+        pyinstaller --noconsole --onefile hindi_translator_app.py
 
     - name: Upload All Compiled Executable Artifacts
       uses: actions/upload-artifact@v4

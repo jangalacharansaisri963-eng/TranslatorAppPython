@@ -1,40 +1,42 @@
-name: Build Single Unified Translator Executable
+name: Build Quantum Translator
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
 
 jobs:
   build:
     runs-on: windows-latest
 
     steps:
-    - name: Checkout Source Code
-      uses: actions/checkout@v4
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
 
-    - name: Set up Python 3.11
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.11'
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
 
-    - name: Install Dependencies
-      run: |
-        python -m pip install --upgrade pip
-        # Removed customtkinter; kept deep-translator
-        pip install pyinstaller deep-translator
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyinstaller deep-translator requests
 
-    - name: Compile Unified App to Standalone EXE
-      run: |
-        # Updated to target translator.py
-        pyinstaller --onefile --collect-all deep_translator translator.py
+      - name: Build Executable
+        run: |
+          pyinstaller ^
+            --onefile ^
+            --console ^
+            --name QuantumTranslator ^
+            --collect-all deep_translator ^
+            translator.py
 
-    - name: Upload Compiled Executable Artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: Unified-Quantum-Terminal
-        path: dist/*.exe
-        if-no-files-found: error
-        retention-days: 100
-        
+      - name: Upload Executable
+        uses: actions/upload-artifact@v4
+        with:
+          name: QuantumTranslator
+          path: dist/QuantumTranslator.exe
+          if-no-files-found: error
+          retention-days: 100

@@ -22,11 +22,13 @@ jobs:
     - name: Install Dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install pyinstaller customtkinter deep-translator
+        # Removed customtkinter; kept deep-translator
+        pip install pyinstaller deep-translator
 
     - name: Compile Unified App to Standalone EXE
       run: |
-        pyinstaller --noconsole --onefile --collect-all deep_translator main_terminal_app.py
+        # Updated to target translator.py
+        pyinstaller --onefile --collect-all deep_translator translator.py
 
     - name: Upload Compiled Executable Artifact
       uses: actions/upload-artifact@v4
@@ -34,5 +36,5 @@ jobs:
         name: Unified-Quantum-Terminal
         path: dist/*.exe
         if-no-files-found: error
-        retention-days: 7
+        retention-days: 100
         

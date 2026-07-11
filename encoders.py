@@ -24,6 +24,17 @@ def translate_api(target_lang, text):
 # =====================================================================
 # SAFE TWO-STEP PIPELINE FOR HINDI / FOREIGN LANGUAGES
 # =====================================================================
+def is_foreign_text(text):
+    """
+    Scans a string to see if it contains multi-byte foreign characters 
+    (like Hindi script or Spanish accents) that will break normal ASCII encoders.
+    """
+    try:
+        text.encode('ascii')
+        return False
+    except UnicodeEncodeError:
+        return True
+
 def process_foreign_to_encoder(payload_phrase, encoder_type):
     """
     Step 1: Safely forces the Hindi/Foreign text back into English words.
@@ -36,25 +47,25 @@ def process_foreign_to_encoder(payload_phrase, encoder_type):
     # Step 2: Route directly to the corresponding encoding engine
     if encoder_type == "binary":
         label, res = process_binary(english_text, decode_mode=False)
-        return f"HINDI -> ENGLISH -> {label}", res
+        return f"FOREIGN -> ENGLISH -> {label}", res
     elif encoder_type == "hex":
         label, res = process_hex(english_text, decode_mode=False)
-        return f"HINDI -> ENGLISH -> {label}", res
+        return f"FOREIGN -> ENGLISH -> {label}", res
     elif encoder_type == "octal":
         label, res = process_octal(english_text, decode_mode=False)
-        return f"HINDI -> ENGLISH -> {label}", res
+        return f"FOREIGN -> ENGLISH -> {label}", res
     elif encoder_type == "base64":
         label, res = process_base64(english_text, decode_mode=False)
-        return f"HINDI -> ENGLISH -> {label}", res
+        return f"FOREIGN -> ENGLISH -> {label}", res
     elif encoder_type == "ascii":
         label, res = process_ascii(english_text)
-        return f"HINDI -> ENGLISH -> {label}", res
+        return f"FOREIGN -> ENGLISH -> {label}", res
     
     raise ValueError(f"Unknown encoder type requested: {encoder_type}")
 
 
 # =====================================================================
-# CORE DATA PROCESSING ENGINES (UNTOUCHED & STABLE)
+# CORE DATA PROCESSING ENGINES (STABLE & OPTIMIZED)
 # =====================================================================
 def process_ascii(payload_phrase):
     if re.match(r'^[0-9\s]+$', payload_phrase):

@@ -24,17 +24,17 @@ jobs:
         python -m pip install --upgrade pip
         pip install pyinstaller customtkinter deep-translator
 
-    - name: Compile All 8 Scripts to Standalone EXEs
+    - name: Compile All 9 Scripts to Standalone EXEs
       run: |
-        pyinstaller --noconsole --onefile spanish_translator_app.py
-        pyinstaller --noconsole --onefile french_translator_app.py
-        pyinstaller --noconsole --onefile german_translator_app.py
-        pyinstaller --noconsole --onefile ascii_translator_app.py
-        pyinstaller --noconsole --onefile binary_translator_app.py
-        pyinstaller --noconsole --onefile hex_translator_app.py
-        pyinstaller --noconsole --onefile octal_translator_app.py
-        pyinstaller --noconsole --onefile base64_translator_app.py
-        pyinstaller --noconsole --onefile hindi_translator_app.py
+        pyinstaller --noconsole --onefile --collect-all deep_translator spanish_translator_app.py
+        pyinstaller --noconsole --onefile --collect-all deep_translator french_translator_app.py
+        pyinstaller --noconsole --onefile --collect-all deep_translator german_translator_app.py
+        pyinstaller --noconsole --onefile --collect-all deep_translator ascii_translator_app.py
+        pyinstaller --noconsole --onefile --collect-all deep_translator binary_translator_app.py
+        pyinstaller --noconsole --onefile --collect-all deep_translator hex_translator_app.py
+        pyinstaller --noconsole --onefile --collect-all deep_translator octal_translator_app.py
+        pyinstaller --noconsole --onefile --collect-all deep_translator base64_translator_app.py
+        pyinstaller --noconsole --onefile --collect-all deep_translator hindi_translator_app.py
 
     - name: Upload All Compiled Executable Artifacts
       uses: actions/upload-artifact@v4

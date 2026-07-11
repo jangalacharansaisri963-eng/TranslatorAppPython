@@ -78,7 +78,7 @@ class UniversalTerminalTranslator(ctk.CTk):
             "====================================================================\n"
             " Ready for execution strings.\n"
             " Syntax Layout: [string payload data] (func translate to [target])\n"
-            " Supported Targets: 'spanish' | 'french' | 'german' | 'english'\n"
+            " Supported Targets: 'spanish' | 'french' | 'german' | 'binary' | 'english'\n"
             " Clear Screen: Type 'clear' and press enter.\n\n"
         )
         self.append_to_terminal(boot_msg)
@@ -106,11 +106,11 @@ class UniversalTerminalTranslator(ctk.CTk):
             self.terminal_display.delete("1.0", "end")
             return
 
-        # Execute syntax regex separation matrix
-        match = re.search(r'\s*\(func translate to ([a-zA-Z]+)\)\s*$', raw_cmd, re.IGNORECASE)
+        # FIXED: Enforces at least one space character before the execution function syntax bracket
+        match = re.search(r'\s+\(func translate to ([a-zA-Z]+)\)\s*$', raw_cmd, re.IGNORECASE)
 
         if not match:
-            self.append_to_terminal(" >> SYNTAX ERROR: Invalid execution brackets.\n >> Expected structure: Text message (func translate to [target])\n\n")
+            self.append_to_terminal(" >> SYNTAX ERROR: Invalid execution brackets or missing space.\n >> Expected structure: Text message (func translate to [target])\n\n")
             return
 
         target_lang = match.group(1).lower().strip()
@@ -121,18 +121,39 @@ class UniversalTerminalTranslator(ctk.CTk):
             self.append_to_terminal(" >> INPUT ERROR: Context message parameter index null.\n\n")
             return
 
-        # Execute background network queries
+        # Handle Custom Local Binary Pipeline Processing
+        if target_lang == "binary":
+            try:
+                # Converts each character into an 8-bit binary block spaced out
+                binary_data = ' '.join(format(ord(char), '08b') for char in payload_phrase)
+                self.append_to_terminal(f" >> TARGET LANG: BINARY\n >> TRANSLATION : {binary_data}\n\n")
+            except Exception as convert_err:
+                self.append_to_terminal(f" >> COMPILATION ERROR: Data stream corrupted. Info: {convert_err}\n\n")
+            return
+
+        # Handle Standard Natural Language Translation Engine Pipelines
         if target_lang in self.engines:
             try:
-                translated_data = self.engines[target_lang].translate(payload_phrase)
-                self.append_to_terminal(f" >> TARGET LANG: {target_lang.upper()}\n >> TRANSLATION : {translated_data}\n\n")
+                # Special check if the incoming payload is binary text trying to output back to English
+                if target_lang == "english" and re.match(r'^[01\s]+$', payload_phrase):
+                    # Strip spaces, group into 8-bit pieces, and map back to ASCII strings
+                    clean_binary = payload_phrase.replace(" ", "")
+                    # Ensure full bytes are processed cleanly
+                    byte_chunks = [clean_binary[i:i+8] for i in range(0, len(clean_binary), 8)]
+                    decoded_text = "".join([chr(int(b, 2)) for b in byte_chunks if len(b) == 8])
+                    
+                    self.append_to_terminal(f" >> TARGET LANG: ENGLISH (BINARY DECODED)\n >> TRANSLATION : {decoded_text}\n\n")
+                else:
+                    # Regular API call loop
+                    translated_data = self.engines[target_lang].translate(payload_phrase)
+                    self.append_to_terminal(f" >> TARGET LANG: {target_lang.upper()}\n >> TRANSLATION : {translated_data}\n\n")
             except Exception as api_err:
                 self.append_to_terminal(f" >> NETWORK TIMEOUT: Gateway request refused. Info: {api_err}\n\n")
         else:
-            self.append_to_terminal(f" >> TARGET ERROR: Unsupported language modifier '{target_lang}'.\n >> Options: 'spanish', 'french', 'german', or 'english'.\n\n")
+            self.append_to_terminal(f" >> TARGET ERROR: Unsupported language modifier '{target_lang}'.\n >> Options: 'spanish', 'french', 'german', 'binary', or 'english'.\n\n")
 
 
 if __name__ == "__main__":
     app = UniversalTerminalTranslator()
     app.mainloop()
-              
+    

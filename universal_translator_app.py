@@ -1,4 +1,5 @@
 import re
+import base64
 import tkinter as tk
 import customtkinter as ctk
 from deep_translator import GoogleTranslator
@@ -78,7 +79,8 @@ class UniversalTerminalTranslator(ctk.CTk):
             "====================================================================\n"
             " Ready for execution strings.\n"
             " Syntax Layout: [string payload data] (func translate to [target])\n"
-            " Supported Targets: 'spanish' | 'french' | 'german' | 'binary' | 'english'\n"
+            " Supported Targets: 'spanish' | 'french' | 'german' | 'english'\n"
+            " Encoding Targets:  'binary'  | 'hex'    | 'octal'  | 'base64' | 'ascii'\n"
             " Clear Screen: Type 'clear' and press enter.\n\n"
         )
         self.append_to_terminal(boot_msg)
@@ -106,8 +108,8 @@ class UniversalTerminalTranslator(ctk.CTk):
             self.terminal_display.delete("1.0", "end")
             return
 
-        # FIXED: Enforces at least one space character before the execution function syntax bracket
-        match = re.search(r'\s+\(func translate to ([a-zA-Z]+)\)\s*$', raw_cmd, re.IGNORECASE)
+        # Enforces at least one space character before the execution function syntax bracket
+        match = re.search(r'\s+\(func translate to ([a-zA-Z0-9]+)\)\s*$', raw_cmd, re.IGNORECASE)
 
         if not match:
             self.append_to_terminal(" >> SYNTAX ERROR: Invalid execution brackets or missing space.\n >> Expected structure: Text message (func translate to [target])\n\n")
@@ -121,36 +123,117 @@ class UniversalTerminalTranslator(ctk.CTk):
             self.append_to_terminal(" >> INPUT ERROR: Context message parameter index null.\n\n")
             return
 
-        # Handle Custom Local Binary Pipeline Processing
+        # ─── LOCAL ENCODING PROCESSORS ───
+        
+        # ASCII Bidirectional Target
+        if target_lang == "ascii":
+            try:
+                # If input is entirely digit numbers spaced out, decode them back to text
+                if re.match(r'^[0-9\s]+$', payload_phrase):
+                    ascii_codes = payload_phrase.split()
+                    decoded_chars = []
+                    for code in ascii_codes:
+                        val = int(code)
+                        if 0 <= val <= 255:
+                            decoded_chars.append(chr(val))
+                        else:
+                            self.append_to_terminal(f" >> VALUE ERROR: Code '{val}' is outside valid ASCII boundaries (0-255).\n\n")
+                            return
+                    result = "".join(decoded_chars)
+                    self.append_to_terminal(f" >> TARGET LANG: ASCII (DECODED CODES)\n >> TRANSLATION : {result}\n\n")
+                
+                # If it contains standard text characters, encode them into numeric ASCII decimals
+                else:
+                    ascii_data = ' '.join(str(ord(char)) for char in payload_phrase)
+                    self.append_to_terminal(f" >> TARGET LANG: ASCII (CODES OUTPUT)\n >> TRANSLATION : {ascii_data}\n\n")
+            except Exception as err:
+                self.append_to_terminal(f" >> COMPILATION ERROR: {err}\n\n")
+            return
+
+        # Binary Target
         if target_lang == "binary":
             try:
-                # Converts each character into an 8-bit binary block spaced out
                 binary_data = ' '.join(format(ord(char), '08b') for char in payload_phrase)
                 self.append_to_terminal(f" >> TARGET LANG: BINARY\n >> TRANSLATION : {binary_data}\n\n")
-            except Exception as convert_err:
-                self.append_to_terminal(f" >> COMPILATION ERROR: Data stream corrupted. Info: {convert_err}\n\n")
+            except Exception as err:
+                self.append_to_terminal(f" >> COMPILATION ERROR: {err}\n\n")
             return
+
+        # Hexadecimal Target
+        if target_lang == "hex":
+            try:
+                hex_data = ' '.join(format(ord(char), '02x') for char in payload_phrase)
+                self.append_to_terminal(f" >> TARGET LANG: HEXADECIMAL\n >> TRANSLATION : {hex_data}\n\n")
+            except Exception as err:
+                self.append_to_terminal(f" >> COMPILATION ERROR: {err}\n\n")
+            return
+
+        # Octal Target
+        if target_lang == "octal":
+            try:
+                octal_data = ' '.join(format(ord(char), '03o') for char in payload_phrase)
+                self.append_to_terminal(f" >> TARGET LANG: OCTAL\n >> TRANSLATION : {octal_data}\n\n")
+            except Exception as err:
+                self.append_to_terminal(f" >> COMPILATION ERROR: {err}\n\n")
+            return
+
+        # Base64 Target
+        if target_lang == "base64":
+            try:
+                b64_bytes = base64.b64encode(payload_phrase.encode('utf-8'))
+                self.append_to_terminal(f" >> TARGET LANG: BASE64\n >> TRANSLATION : {b64_bytes.decode('utf-8')}\n\n")
+            except Exception as err:
+                self.append_to_terminal(f" >> COMPILATION ERROR: {err}\n\n")
+            return
+
+        # ─── TRANSLATION AND DECODING INTERCEPT LOOPS ───
+        if target_lang == "english":
+            try:
+                # Intercept Binary Decoder
+                if re.match(r'^[01\s]+$', payload_phrase):
+                    clean_binary = payload_phrase.replace(" ", "")
+                    byte_chunks = [clean_binary[i:i+8] for i in range(0, len(clean_binary), 8)]
+                    decoded_text = "".join([chr(int(b, 2)) for b in byte_chunks if len(b) == 8])
+                    self.append_to_terminal(f" >> TARGET LANG: ENGLISH (BINARY DECODED)\n >> TRANSLATION : {decoded_text}\n\n")
+                    return
+
+                # Intercept Hexadecimal Decoder
+                if re.match(r'^[0-9a-fA-F\s]+$', payload_phrase) and (any(c in payload_phrase for c in 'abcdefABCDEF') or len(payload_phrase.replace(" ", "")) % 2 == 0):
+                    clean_hex = payload_phrase.replace(" ", "")
+                    decoded_text = bytes.fromhex(clean_hex).decode('utf-8', errors='ignore')
+                    self.append_to_terminal(f" >> TARGET LANG: ENGLISH (HEX DECODED)\n >> TRANSLATION : {decoded_text}\n\n")
+                    return
+
+                # Intercept Octal Decoder
+                if re.match(r'^[0-7\s]+$', payload_phrase) and (" " in payload_phrase or len(payload_phrase) >= 3):
+                    octal_chunks = payload_phrase.split()
+                    decoded_text = "".join([chr(int(o, 8)) for o in octal_chunks])
+                    self.append_to_terminal(f" >> TARGET LANG: ENGLISH (OCTAL DECODED)\n >> TRANSLATION : {decoded_text}\n\n")
+                    return
+
+                # Intercept Base64 Decoder
+                if re.match(r'^[A-Za-z0-9+/=\s]+$', payload_phrase) and (len(payload_phrase.replace(" ", "")) % 4 == 0 or "=" in payload_phrase):
+                    try:
+                        decoded_bytes = base64.b64decode(payload_phrase.strip())
+                        decoded_text = decoded_bytes.decode('utf-8')
+                        self.append_to_terminal(f" >> TARGET LANG: ENGLISH (BASE64 DECODED)\n >> TRANSLATION : {decoded_text}\n\n")
+                        return
+                    except:
+                        pass 
+
+            except Exception as decode_err:
+                self.append_to_terminal(f" >> DECODER ERROR: Data stream recovery failed. Info: {decode_err}\n\n")
+                return
 
         # Handle Standard Natural Language Translation Engine Pipelines
         if target_lang in self.engines:
             try:
-                # Special check if the incoming payload is binary text trying to output back to English
-                if target_lang == "english" and re.match(r'^[01\s]+$', payload_phrase):
-                    # Strip spaces, group into 8-bit pieces, and map back to ASCII strings
-                    clean_binary = payload_phrase.replace(" ", "")
-                    # Ensure full bytes are processed cleanly
-                    byte_chunks = [clean_binary[i:i+8] for i in range(0, len(clean_binary), 8)]
-                    decoded_text = "".join([chr(int(b, 2)) for b in byte_chunks if len(b) == 8])
-                    
-                    self.append_to_terminal(f" >> TARGET LANG: ENGLISH (BINARY DECODED)\n >> TRANSLATION : {decoded_text}\n\n")
-                else:
-                    # Regular API call loop
-                    translated_data = self.engines[target_lang].translate(payload_phrase)
-                    self.append_to_terminal(f" >> TARGET LANG: {target_lang.upper()}\n >> TRANSLATION : {translated_data}\n\n")
+                translated_data = self.engines[target_lang].translate(payload_phrase)
+                self.append_to_terminal(f" >> TARGET LANG: {target_lang.upper()}\n >> TRANSLATION : {translated_data}\n\n")
             except Exception as api_err:
                 self.append_to_terminal(f" >> NETWORK TIMEOUT: Gateway request refused. Info: {api_err}\n\n")
         else:
-            self.append_to_terminal(f" >> TARGET ERROR: Unsupported language modifier '{target_lang}'.\n >> Options: 'spanish', 'french', 'german', 'binary', or 'english'.\n\n")
+            self.append_to_terminal(f" >> TARGET ERROR: Unsupported language modifier '{target_lang}'.\n >> Options: 'spanish', 'french', 'german', 'english', 'binary', 'hex', 'octal', 'base64', 'ascii'.\n\n")
 
 
 if __name__ == "__main__":

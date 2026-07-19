@@ -1,5 +1,6 @@
 import base64
 import re
+import pyperclip
 from deep_translator import GoogleTranslator
 
 # -----------------------------
@@ -58,6 +59,11 @@ def run_translator():
     print("TURKISH, INDONESIAN, MALAY, FILIPINO")
     print("VIETNAMESE, IRISH, WELSH, AFRIKAANS, SWAHILI, LATIN")
     print("Encoders: BINARY, HEX, OCTAL, ASCII, BASE64")
+    print("Commands:")
+    print("(func copy)  -> Copy latest output")
+    print("(func paste) -> Show clipboard")
+
+    last_result = ""
 
     while True:
 
@@ -70,6 +76,22 @@ def run_translator():
 
             if cmd.lower() == "clear":
                 print("\n" * 100)
+                continue
+
+            if cmd.lower() == "(func copy)":
+                if last_result:
+                    pyperclip.copy(last_result)
+                    print(">> Latest output copied to clipboard.")
+                else:
+                    print(">> Nothing to copy.")
+                continue
+
+            if cmd.lower() == "(func paste)":
+                try:
+                    pasted = pyperclip.paste()
+                    print(f">> CLIPBOARD: {pasted}")
+                except Exception as e:
+                    print(f">> Clipboard Error: {e}")
                 continue
 
             match = re.search(r"(.*)\(func translate to (.*)\)", cmd)
@@ -115,6 +137,7 @@ def run_translator():
                 else:
                     result = "!! UNKNOWN TARGET ENCODER/LANG !!"
 
+            last_result = result
             print(f">> OUTPUT ({target.upper()}): {result}")
 
         except Exception as e:

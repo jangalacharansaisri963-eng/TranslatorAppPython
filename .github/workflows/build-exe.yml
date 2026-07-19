@@ -23,6 +23,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install pyinstaller deep-translator requests
+          pip install pyperclip 
 
       - name: Build Executable
         run: pyinstaller --onefile --console --name Translator --collect-all deep_translator translator.py

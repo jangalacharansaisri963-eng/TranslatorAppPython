@@ -1,6 +1,15 @@
 import base64
 import re
 import pyperclip
+
+# --- CHECK CLIPBOARD AVAILABILITY ---
+try:
+    pyperclip.paste()
+    CLIPBOARD_AVAILABLE = True
+except Exception:
+    CLIPBOARD_AVAILABLE = False
+# ------------------------------------
+
 from deep_translator import GoogleTranslator
 
 # -----------------------------
@@ -8,38 +17,14 @@ from deep_translator import GoogleTranslator
 # -----------------------------
 def get_lang_code(target):
     mapping = {
-        "english": "en",
-        "spanish": "es",
-        "french": "fr",
-        "german": "de",
-        "italian": "it",
-        "portuguese": "pt",
-        "dutch": "nl",
-        "swedish": "sv",
-        "norwegian": "no",
-        "danish": "da",
-        "finnish": "fi",
-        "polish": "pl",
-        "czech": "cs",
-        "slovak": "sk",
-        "romanian": "ro",
-        "hungarian": "hu",
-        "croatian": "hr",
-        "slovenian": "sl",
-        "albanian": "sq",
-        "estonian": "et",
-        "latvian": "lv",
-        "lithuanian": "lt",
-        "turkish": "tr",
-        "indonesian": "id",
-        "malay": "ms",
-        "filipino": "tl",
-        "vietnamese": "vi",
-        "irish": "ga",
-        "welsh": "cy",
-        "afrikaans": "af",
-        "swahili": "sw",
-        "latin": "la"
+        "english": "en", "spanish": "es", "french": "fr", "german": "de", 
+        "italian": "it", "portuguese": "pt", "dutch": "nl", "swedish": "sv", 
+        "norwegian": "no", "danish": "da", "finnish": "fi", "polish": "pl", 
+        "czech": "cs", "slovak": "sk", "romanian": "ro", "hungarian": "hu", 
+        "croatian": "hr", "slovenian": "sl", "albanian": "sq", "estonian": "et", 
+        "latvian": "lv", "lithuanian": "lt", "turkish": "tr", "indonesian": "id", 
+        "malay": "ms", "filipino": "tl", "vietnamese": "vi", "irish": "ga", 
+        "welsh": "cy", "afrikaans": "af", "swahili": "sw", "latin": "la"
     }
     return mapping.get(target)
 
@@ -62,6 +47,9 @@ def run_translator():
     print("Commands:")
     print("(func copy)  -> Copy latest output")
     print("(func paste) -> Show clipboard")
+    
+    if not CLIPBOARD_AVAILABLE:
+        print("\n[!] Notice: System clipboard unavailable. Copy/Paste functions disabled.")
 
     last_result = ""
 
@@ -79,7 +67,9 @@ def run_translator():
                 continue
 
             if cmd.lower() == "(func copy)":
-                if last_result:
+                if not CLIPBOARD_AVAILABLE:
+                    print(">> ERROR: Clipboard operations are not supported on this device.")
+                elif last_result:
                     pyperclip.copy(last_result)
                     print(">> Latest output copied to clipboard.")
                 else:
@@ -87,11 +77,14 @@ def run_translator():
                 continue
 
             if cmd.lower() == "(func paste)":
-                try:
-                    pasted = pyperclip.paste()
-                    print(f">> CLIPBOARD: {pasted}")
-                except Exception as e:
-                    print(f">> Clipboard Error: {e}")
+                if not CLIPBOARD_AVAILABLE:
+                    print(">> ERROR: Clipboard operations are not supported on this device.")
+                else:
+                    try:
+                        pasted = pyperclip.paste()
+                        print(f">> CLIPBOARD: {pasted}")
+                    except Exception as e:
+                        print(f">> Clipboard Error: {e}")
                 continue
 
             match = re.search(r"(.*)\(func translate to (.*)\)", cmd)
@@ -146,3 +139,4 @@ def run_translator():
 
 if __name__ == "__main__":
     run_translator()
+    

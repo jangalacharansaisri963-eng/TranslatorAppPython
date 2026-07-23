@@ -24,7 +24,8 @@ def get_lang_code(target):
         "croatian": "hr", "slovenian": "sl", "albanian": "sq", "estonian": "et", 
         "latvian": "lv", "lithuanian": "lt", "turkish": "tr", "indonesian": "id", 
         "malay": "ms", "filipino": "tl", "vietnamese": "vi", "irish": "ga", 
-        "welsh": "cy", "afrikaans": "af", "swahili": "sw", "latin": "la"
+        "welsh": "cy", "afrikaans": "af", "swahili": "sw", "latin": "la",
+        "japanese": "ja", "chinese": "zh-CN"
     }
     return mapping.get(target)
 
@@ -43,6 +44,7 @@ def run_translator():
     print("ESTONIAN, LATVIAN, LITHUANIAN")
     print("TURKISH, INDONESIAN, MALAY, FILIPINO")
     print("VIETNAMESE, IRISH, WELSH, AFRIKAANS, SWAHILI, LATIN")
+    print("JAPANESE, CHINESE")
     print("Encoders: BINARY, HEX, OCTAL, ASCII, BASE64")
     print("Commands:")
     print("(func copy)  -> Copy latest output")
@@ -96,24 +98,27 @@ def run_translator():
             payload = match.group(1).strip()
             target = match.group(2).strip().lower()
 
+            # Safely encode payload string to raw UTF-8 bytes to handle non-ASCII text
+            payload_bytes = payload.encode("utf-8")
+
             # -----------------------------
-            # ENCODERS
+            # ENCODERS (UTF-8 COMPATIBLE)
             # -----------------------------
 
             if target == "binary":
-                result = " ".join(format(ord(c), "08b") for c in payload)
+                result = " ".join(format(b, "08b") for b in payload_bytes)
 
             elif target == "hex":
-                result = " ".join(format(ord(c), "02X") for c in payload)
+                result = " ".join(format(b, "02X") for b in payload_bytes)
 
             elif target == "octal":
-                result = " ".join(format(ord(c), "03o") for c in payload)
+                result = " ".join(format(b, "03o") for b in payload_bytes)
 
             elif target == "ascii":
-                result = " ".join(str(ord(c)) for c in payload)
+                result = " ".join(str(b) for b in payload_bytes)
 
             elif target == "base64":
-                result = base64.b64encode(payload.encode("utf-8")).decode("utf-8")
+                result = base64.b64encode(payload_bytes).decode("utf-8")
 
             # -----------------------------
             # TRANSLATION
@@ -139,4 +144,4 @@ def run_translator():
 
 if __name__ == "__main__":
     run_translator()
-    
+                        

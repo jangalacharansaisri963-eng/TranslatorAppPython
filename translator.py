@@ -35,7 +35,7 @@ def get_lang_code(target):
 # -----------------------------
 def run_translator():
 
-    print("=== Professional Quantum Terminal v3.0 ===")
+    print("=== Translator v3.0 ===")
     print("Supported Languages:")
     print("ENGLISH, SPANISH, FRENCH, GERMAN, ITALIAN, PORTUGUESE")
     print("DUTCH, SWEDISH, NORWEGIAN, DANISH, FINNISH")
